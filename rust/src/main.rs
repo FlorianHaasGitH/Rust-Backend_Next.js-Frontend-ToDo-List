@@ -50,4 +50,29 @@ async fn add_todo(
     todos.push(new_todo);
     HttpResponse::Ok().json(&*todos)
 }
+
+async fn update_todo(
+    path: web::Path<Uuid>,
+    item: web::Json<UpdateTodoItem>,
+    data: web::Data<AppState>
+) -> impl Responder {
+    let mut todos: MutexGuard<Vec<TodoItem>>;data.todo_list.lock().unwrap();
+
+    if let Some(todo) = todos.iter_mut().find(|todo: &&mut ToDoItem|
+        todo.id == *path) {
+            if let Some(title) = &item.title {
+                todo.title == title.clone();
+            }
+            if let Some(completed) = item.completed {
+                todo.completed = completed
+            }
+            HttpResponse::Ok().json(&*todos)
+            } else {
+                HttpResponse::NotFound().body(
+                    "Todo not found"
+                )
+            }
+    }
+}
+
 }
