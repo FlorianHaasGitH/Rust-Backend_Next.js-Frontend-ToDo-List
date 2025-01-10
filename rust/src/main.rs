@@ -32,7 +32,7 @@ struct AppState {
 }
 
 async fn get_todos(data: web::Data<AppState>) -> impl Responder{
-    let todos: MutexGuard<Vec<TodoItem>> = data.todo_list.lock().unwrap();
+    let todos: MutexGuard<Vec<ToDoItem>> = data.todo_list.lock().unwrap();
     HttpResponse::Ok().json(&*todos)
 }
 
@@ -41,7 +41,7 @@ async fn add_todo(
     data: web::Data<AppState>
 ) -> impl Responder {
     let mut todos: MutexGuard<Vec<ToDoItem>> = data.todo_list.lock().unwrap();
-    let new_todo: ToDoItem = ToDoItem{
+    let new_todo = ToDoItem{
         id: Uuid::new_v4(),
         title: item.title.clone(),
         completed: item.completed,
@@ -56,12 +56,12 @@ async fn update_todo(
     item: web::Json<UpdateTodoItem>,
     data: web::Data<AppState>
 ) -> impl Responder {
-    let mut todos: MutexGuard<Vec<TodoItem>>;data.todo_list.lock().unwrap();
+    let mut todos: MutexGuard<Vec<ToDoItem>>;data.todo_list.lock().unwrap();
 
     if let Some(todo) = todos.iter_mut().find(|todo: &&mut ToDoItem|
         todo.id == *path) {
             if let Some(title) = &item.title {
-                todo.title == title.clone();
+                todo.title = title.clone();
             }
             if let Some(completed) = item.completed {
                 todo.completed = completed
@@ -72,7 +72,21 @@ async fn update_todo(
                     "Todo not found"
                 )
             }
+}
+
+async fn delete_todo(
+    path: web::Path<Uuid>,
+    data: web::Data<AppState>
+)   -> impl Responder {
+    let mut todos = data.todo_list.lock().unwrap();
+    if todos.iter().any(|todo: &ToDoItem| todo.id == *path) {
+        todos.retain(|todo: &ToDoItem| todo.id != *path);
+        HttpResponse::Ok().json(&*todos)
+    } else {
+        HttpResponse::NotFound().body("Todo not found")
     }
 }
+
+
 
 }
