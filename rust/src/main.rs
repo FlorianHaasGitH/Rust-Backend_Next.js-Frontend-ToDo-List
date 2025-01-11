@@ -83,7 +83,7 @@ async fn delete_todo(path: web::Path<Uuid>, data: web::Data<AppState>) -> impl R
 async fn main() -> std::io::Result<()>{
     let app_state = web::Data::new(AppState {
         todo_list: Mutex::new(Vex::new()),
-    })
+    });
 
     HttpServer::new(move || {
         let cors = Cors::default()
@@ -91,5 +91,14 @@ async fn main() -> std::io::Result<()>{
         .allow_any_method()
         .allow_any_header()
         .max_age(3600);
+
+    App::new()
+    .app_data(app_state.clone())
+    .wrap(cors).route("/todos", web::get().to(get_todos))
+    .route("/todos", web::post().to(add_todo))
+    .route("todos/{id}", web::put().to(update_todo))
+    .route("todos/{id}", web::delete().to(delete_todo))
     })
+
+    
 }
