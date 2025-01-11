@@ -99,6 +99,6 @@ async fn main() -> std::io::Result<()>{
     .route("todos/{id}", web::put().to(update_todo))
     .route("todos/{id}", web::delete().to(delete_todo))
     })
-
+    .bind("127.0.0.1:8000") ? .run().await()
     
 }
