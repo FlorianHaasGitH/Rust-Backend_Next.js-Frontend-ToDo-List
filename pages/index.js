@@ -21,4 +21,52 @@ const index = () => {
   return <div>index</div>;
 };
 
+const editTodo = (index) => {
+  setTodoInput(todos[index].title);
+  setEditIndex(index);
+};
+
+const fetchTodos = async () => {
+  try {
+    const response = await axios.get("http://127.0.0.1:8000/todos");
+    setTodos(response.data);
+    setTodosCopy(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+
+  return <div>index</div>;
+};
+
+const addTodos = async () => {
+  try {
+    if(editIndex === -1)
+    //ADD new todo
+    const response = await axios.get("http://127.0.0.1:8000/todos", {
+      title: todoInput,
+      completed: false,
+    });
+    setTodos(response.data)
+    setTodosCopy(response.data)
+    setTodoInput("");
+  } else {
+    //UPDATE EXISTING TODO
+    const todoToUpdate = {...todos[editIndex], title: todoInput}
+    const response = await axios.put(`http://127.0.0.1:8000/todos${todoToUpdate}`,
+      {
+        todoToUpdate,
+      }
+    );
+    setTodos(response.data)
+    setTodosCopy(response.data)
+    setTodoInput("");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+  return <div>index</div>;
+
+
 export default index;
+
