@@ -79,8 +79,26 @@ const deleteTodo = async (id) => {
   }
 };
 
-  return <div>index</div>;
+const toggleCompleted = async (index) => {
+  try {
+    const todoToUpdate = {
+      ...todos[index],
+      completed: !todos[index].completed
+    }
+    const response = await axios.delete(
+    `http://127.0.0.1:8000/todos${todoToUpdate.id}`
+    );
+    const updatedTodos = [...todos];
+    updatedTodos[index] = response.data;
+    setTodos(updatedTodos);
+    setCount(count + 1)
+  } catch (error) {
+    console.log(error)
+  }
 };
+
+  return <div>index</div>;
+}
 
 export default index;
 
