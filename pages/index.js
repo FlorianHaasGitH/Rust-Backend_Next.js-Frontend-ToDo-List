@@ -94,9 +94,25 @@ const toggleCompleted = async (index) => {
     setCount(count + 1)
   } catch (error) {
     console.log(error)
-  }
-};
+  };
 
+  const searchTodo = () => {
+    result = todos.filter((filter) => {
+      todo.title.toLowerCase().includes(searchInput.toLowerCase())
+    })
+    setSearchResult(result);
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      const data = new Date(dateString);
+      return isNaN(dateString.getTime()) ? "Invalid date" : format(dateString, "yyyy-MM-dd HH:mm:ss");
+    } catch (error) {
+      console.log(error);
+  }
+
+
+};
   return <div>index</div>;
 }
 
