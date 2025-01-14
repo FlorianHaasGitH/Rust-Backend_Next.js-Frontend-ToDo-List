@@ -1,120 +1,119 @@
 import React, { useState, useEffect } from "react";
-import { MdDelete, MdEdit, MdConfirmationNumber } from "react-icons/md";
 import axios from "axios";
-import { format } from "date-fns";
 
-//IMPORT COMPONENT
-
-const index = () => {
-  const [editText, setEditText] = useState();
+const Index = () => {
   const [todos, setTodos] = useState([]);
-  const [todosCopy, setTodosCopy] = useState(todos);
   const [todoInput, setTodoInput] = useState("");
-  const [editIdex, setEditIndex] = useState(-1);
+  const [editIndex, setEditIndex] = useState(-1);
   const [searchInput, setSearchInput] = useState("");
 
-  //STATE MANAGMENT
-  const [count, setCount] = useState(0);
-  const [search, setSearch] = useState("");
-  const [searchItem, setSearchItem] = useState(search);
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
-  return <div>index</div>;
-};
-
-const editTodo = (index) => {
-  setTodoInput(todos[index].title);
-  setEditIndex(index);
-};
-
-const fetchTodos = async () => {
-  try {
-    const response = await axios.get("http://127.0.0.1:8000/todos");
-    setTodos(response.data);
-    setTodosCopy(response.data);
-  } catch (error) {
-    console.log(error);
-  }
-
-  return <div>index</div>;
-};
-
-const addTodos = async () => {
-  try {
-    if(editIndex === -1)
-    //ADD new todo
-    const response = await axios.get("http://127.0.0.1:8000/todos", {
-      title: todoInput,
-      completed: false,
-    });
-    setTodos(response.data);
-    setTodosCopy(response.data);
-    setTodoInput("");
-  } else {
-    //UPDATE EXISTING TODO
-    const todoToUpdate = {...todos[editIndex], title: todoInput};
-    const response = await axios.put(
-      `http://127.0.0.1:8000/todos${todoToUpdate.id}`,
-      {
-        todoToUpdate,
-      }
-    );
-    console.log(response);
-    const updatedTodos = [...todos];
-    updatedTodos[editIndex] = response.data;
-    setTodos(updatedTodos);
-    setTodoInput("");
-    setEditIndex(-1);
-    setCount(count + 1);
-  } catch (error) {
-    console.log(error);
-  }
-
-const deleteTodo = async (id) => {
-  try {
-    const response = await axios.delete(
-    `http://127.0.0.1:8000/todos${id}`);
-    setTodos(todos.filter((todo) => todo.id !== id));
-  } catch (error) {
-    console.log(error)
-  }
-};
-
-const toggleCompleted = async (index) => {
-  try {
-    const todoToUpdate = {
-      ...todos[index],
-      completed: !todos[index].completed
+  const fetchTodos = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/todos");
+      setTodos(response.data);
+    } catch (error) {
+      console.error("Error fetching todos:", error);
     }
-    const response = await axios.delete(
-    `http://127.0.0.1:8000/todos${todoToUpdate.id}`
-    );
-    const updatedTodos = [...todos];
-    updatedTodos[index] = response.data;
-    setTodos(updatedTodos);
-    setCount(count + 1)
-  } catch (error) {
-    console.log(error)
+  };
+
+  const addTodo = async () => {
+    try {
+      if (editIndex === -1) {
+        // Add new todo
+        const response = await axios.post("http://127.0.0.1:8000/todos", {
+          title: todoInput,
+          completed: false,
+        });
+        setTodos(response.data);
+      } else {
+        // Update existing todo
+        const todoToUpdate = todos[editIndex];
+        const response = await axios.put(
+          `http://127.0.0.1:8000/todos/${todoToUpdate.ui}`,
+          {
+            title: todoInput,
+          }
+        );
+        setTodos(response.data);
+        setEditIndex(-1);
+      }
+      setTodoInput("");
+    } catch (error) {
+      console.error("Error adding/updating todo:", error);
+    }
+  };
+
+  const deleteTodo = async (ui) => {
+    try {
+      const response = await axios.delete(`http://127.0.0.1:8000/todos/${ui}`);
+      setTodos(response.data);
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+    }
+  };
+
+  const toggleCompleted = async (index) => {
+    try {
+      const todoToUpdate = todos[index];
+      const response = await axios.put(
+        `http://127.0.0.1:8000/todos/${todoToUpdate.ui}`,
+        {
+          completed: !todoToUpdate.completed,
+        }
+      );
+      setTodos(response.data);
+    } catch (error) {
+      console.error("Error toggling completed:", error);
+    }
   };
 
   const searchTodo = () => {
-    result = todos.filter((filter) => {
+    const results = todos.filter((todo) =>
       todo.title.toLowerCase().includes(searchInput.toLowerCase())
-    })
-    setSearchResult(result);
+    );
+    setTodos(results);
   };
 
-  const formatDate = (dateString) => {
-    try {
-      const data = new Date(dateString);
-      return isNaN(dateString.getTime()) ? "Invalid date" : format(dateString, "yyyy-MM-dd HH:mm:ss");
-    } catch (error) {
-      console.log(error);
-  }
-
-
+  return (
+    <div>
+      <h1>Todo App</h1>
+      <input
+        type="text"
+        value={todoInput}
+        onChange={(e) => setTodoInput(e.target.value)}
+      />
+      <button onClick={addTodo}>{editIndex === -1 ? "Add" : "Update"}</button>
+      <input
+        type="text"
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        placeholder="Search todos..."
+      />
+      <button onClick={searchTodo}>Search</button>
+      <ul>
+        {todos.map((todo, index) => (
+          <li key={todo.ui}>
+            <span
+              style={{
+                textDecoration: todo.completed ? "line-through" : "none",
+              }}
+            >
+              {todo.title}
+            </span>
+            <button onClick={() => setEditIndex(index)}>Edit</button>
+            <button onClick={() => deleteTodo(todo.ui)}>Delete</button>
+            <button onClick={() => toggleCompleted(index)}>
+              {todo.completed ? "Unmark" : "Complete"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
-  return <div>index</div>;
-}
 
-export default index;
-
+export default Index;
